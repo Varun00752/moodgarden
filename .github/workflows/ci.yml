@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: moodgarden/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./moodgarden
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: ./moodgarden
+        run: node --test test/logic.test.mjs
+
+      - name: Run build
+        working-directory: ./moodgarden
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://mock-project.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: mock-service-role-key
+          HUGGINGFACE_API_KEY: mock-hf-token
+        run: npm run build
